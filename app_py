@@ -1,0 +1,107 @@
+from flask import Flask, request, jsonify
+from prometheus_client import (
+    Counter, generate_latest,
+    CONTENT_TYPE_LATEST
+)
+
+app = Flask(__name__)
+
+students = {}
+next_id = 1
+
+REQUESTS = Counter(
+    "student_app_requests_total",
+    "Total HTTP requests received by the application"
+)
+
+
+@app.before_request
+def count_request():
+    REQUESTS.inc()
+
+
+@app.route("/")
+def home():
+    return jsonify({
+        "message": "Student Management System",
+        "endpoints": [
+            "/students",
+            "/health",
+            "/metrics"
+        ]
+    })
+
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "healthy"}), 200
+
+
+@app.route("/students", methods=["GET"])
+def get_students():
+    return jsonify(list(students.values())), 200
+
+
+@app.route("/students", methods=["POST"])
+def add_student():
+    global next_id
+
+    data = request.get_json(silent=True) or {}
+    name = data.get("name")
+    course = data.get("course")
+
+    if not name or not course:
+        return jsonify({
+            "error": "Name and course are required"
+        }), 400
+
+    student = {
+        "id": next_id,
+        "name": name,
+        "course": course
+    }
+
+    students[next_id] = student
+    next_id += 1
+
+    return jsonify(student), 201
+
+
+@app.route("/students/<int:student_id>",
+           methods=["PUT"])
+def update_student(student_id):
+    if student_id not in students:
+        return jsonify({"error": "Student not found"}), 404
+
+    data = request.get_json(silent=True) or {}
+
+    if "name" in data:
+        students[student_id]["name"] = data["name"]
+
+    if "course" in data:
+        students[student_id]["course"] = data["course"]
+
+    return jsonify(students[student_id]), 200
+
+
+@app.route("/students/<int:student_id>",
+           methods=["DELETE"])
+def delete_student(student_id):
+    if student_id not in students:
+        return jsonify({"error": "Student not found"}), 404
+
+    del students[student_id]
+    return "", 204
+
+
+@app.route("/metrics")
+def metrics():
+    return (
+        generate_latest(),
+        200,
+        {"Content-Type": CONTENT_TYPE_LATEST}
+    )
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
