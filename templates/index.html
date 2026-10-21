@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 18px;
+            background: #f4f6f9;
+        }
+        h1, h2 { color: #243b53; }
+        form, .student {
+            background: white;
+            padding: 16px;
+            margin: 12px 0;
+            border-radius: 8px;
+        }
+        input {
+            padding: 9px;
+            margin: 4px;
+            max-width: 100%;
+        }
+        button {
+            padding: 9px 14px;
+            cursor: pointer;
+        }
+        .student form { padding: 6px 0; }
+    </style>
+</head>
+<body>
+    <h1>Student Management System</h1>
+    <p>Manage student records using a simple Flask application.</p>
+
+    <h2>Add Student</h2>
+    <form action="/students" method="post">
+        <input name="name" placeholder="Student name" required>
+        <input name="roll_number" placeholder="Roll number" required>
+        <input name="course" placeholder="Course" required>
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h2>Student Records</h2>
+    {% for student in students %}
+    <div class="student">
+        <strong>{{ student.name }}</strong>
+        — {{ student.roll_number }} — {{ student.course }}
+
+        <form action="/students/{{ student.id }}/update" method="post">
+            <input name="name" value="{{ student.name }}" required>
+            <input name="roll_number"
+                   value="{{ student.roll_number }}" required>
+            <input name="course" value="{{ student.course }}" required>
+            <button type="submit">Update</button>
+        </form>
+
+        <form action="/students/{{ student.id }}/delete" method="post">
+            <button type="submit">Delete</button>
+        </form>
+    </div>
+    {% else %}
+    <p>No student records available.</p>
+    {% endfor %}
+
+    <p><a href="/health">Health check</a> |
+       <a href="/metrics">Application metrics</a></p>
+</body>
+</html>

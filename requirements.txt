@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 Flask
 pytest
 prometheus-client
+=======
+Flask>=3.1,<4
+prometheus-client>=0.21,<1
+pytest>=8,<10
+>>>>>>> 81f6b5033f6eb3017005100d28d3bac776ba3d5c
